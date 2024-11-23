@@ -90,8 +90,66 @@ select * from vw_CTPXUAT_VT_PX;
 
 
 
--- Tao Procedures
 
+
+-- Tao Stored Procedures
+
+delimiter $
+drop procedure if exists demSLCuoiVT $
+create procedure demSLCuoiVT(
+	in in_ma_vt varchar(20),
+    out sl_cuoi int
+)
+proc: begin
+	declare in_vt_id int;
+	declare var_sl_dau int default 0;
+    declare var_tong_sln int default 0;
+    declare var_tong_slx int default 0; 
+    declare var_sl_nhap int default 0;
+    declare var_sl_xuat int default 0;
+    
+    select 'Comment';
+    
+    select id
+    into in_vt_id
+    from VatTu
+    where ma_vt = in_ma_vt;
+    
+    select concat('id: ', in_vt_id);
+    
+    IF in_vt_id is NULL THEN
+        SET sl_cuoi = -1; -- Trả về -1 nếu không tìm thấy vật tư
+        leave proc;
+    END IF;
+    
+    SELECT sl_dau, tong_sln, tong_slx
+    INTO var_sl_dau, var_tong_sln, var_tong_slx
+    FROM TonKho
+    WHERE vattu_id = in_vt_id;
+    
+    select concat('Ton kho: ', var_sl_dau,' ', var_tong_sln,' ', var_tong_slx);
+    
+    select coalesce(sum(sl_nhap),0)
+    into var_sl_nhap
+    from CTPhieuNhap
+    where vt_id = in_vt_id;
+    
+    select concat('sl_nhap: ', var_sl_nhap);
+    
+    select coalesce(sum(sl_xuat),0)
+    into var_sl_xuat
+    from CTPhieuXuat
+    where vt_id = in_vt_id;
+    
+    select concat('sl_xuat: ', var_sl_xuat);
+    
+    set sl_cuoi = (var_sl_dau + var_tong_sln - var_tong_slx) + var_sl_nhap - var_sl_xuat;
+    select concat('So luong cuoi: ', sl_cuoi);
+end $
+delimiter ;
+
+call demSLCuoiVT('VT005', @sl_cuoi);
+select @sl_cuoi;
 
 
 
