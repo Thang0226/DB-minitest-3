@@ -117,17 +117,17 @@ proc: begin
     
     select concat('id: ', in_vt_id);
     
-    IF in_vt_id is NULL THEN
-        SET sl_cuoi = -1; -- Trả về -1 nếu không tìm thấy vật tư
+    if in_vt_id is null then
+        set sl_cuoi = -1; -- Trả về -1 nếu không tìm thấy vật tư
         leave proc;
-    END IF;
+    end if;
     
-    SELECT sl_dau, tong_sln, tong_slx
+    select sl_dau, tong_sln, tong_slx
     INTO var_sl_dau, var_tong_sln, var_tong_slx
     FROM TonKho
     WHERE vattu_id = in_vt_id;
     
-    select concat('Ton kho: ', var_sl_dau,' ', var_tong_sln,' ', var_tong_slx);
+    select concat('ton kho: ', var_sl_dau,' ', var_tong_sln,' ', var_tong_slx);
     
     select coalesce(sum(sl_nhap),0)
     into var_sl_nhap
@@ -144,13 +144,63 @@ proc: begin
     select concat('sl_xuat: ', var_sl_xuat);
     
     set sl_cuoi = (var_sl_dau + var_tong_sln - var_tong_slx) + var_sl_nhap - var_sl_xuat;
-    select concat('So luong cuoi: ', sl_cuoi);
+    select concat('so luong cuoi: ', sl_cuoi);
 end $
 delimiter ;
 
-call demSLCuoiVT('VT005', @sl_cuoi);
+call demSLCuoivt('VT005', @sl_cuoi);
 select @sl_cuoi;
 
+
+delimiter $
+drop procedure if exists tinhTongTienXuat $
+create procedure tinhTongTienXuat(
+	in in_ma_vt varchar(20),
+    out tong_tien decimal(10,2)
+)
+begin
+	declare in_vt_id int;
+    
+    select id
+    into in_vt_id
+    from VatTu
+    where ma_vt = in_ma_vt;
+    
+    select coalesce(sum(sl_xuat * dg_xuat), 0)
+    into tong_tien
+    from CTPhieuXuat
+    where vt_id = in_vt_id;
+end $
+delimiter ;
+
+call tinhTongTienXuat('VT0025', @tong_tien);
+select @tong_tien;
+
+
+delimiter //
+drop table if exists tinhTongSLDat//
+create procedure tinhTongSLDat(
+	in in_ma_dh varchar(20),
+    out tong_sl int
+)
+begin
+	declare in_dh_id int;
+    
+    select id
+    into in_dh_id
+    from DonDH
+    where ma_dh = in_ma_dh;
+    
+    select coalesce(sum(sl_dat),0)
+    into tong_sl
+    from CTDonHang
+    where dh_id = in_dh_id;
+    
+end//
+delimiter ;
+
+call tinhTongSLDat('DH002', @tong_sl_dat);
+select @tong_sl_dat;
 
 
 
