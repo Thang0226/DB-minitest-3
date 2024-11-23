@@ -203,12 +203,59 @@ call tinhTongSLDat('DH002', @tong_sl_dat);
 select @tong_sl_dat;
 
 
+delimiter //
+create procedure themDonDH(
+	in in_ma_dh varchar(20),
+    in in_ngay_dh date,
+    in in_ncc_id int
+)
+begin
+	insert into DonDH(ma_dh, ngay_dh, ncc_id) values
+		(in_ma_dh, in_ngay_dh, in_ncc_id);
+end//
+delimiter ;
+
+call themDonDH('DH004', '2024-11-23', 2);
+select * from DonDH;
 
 
+delimiter //
+create procedure themCTDonHang(
+	in in_dh_id int,
+    in in_vt_id int,
+    in in_sl_dat int
+)
+begin
+	insert into CTDonHang(dh_id, vt_id, sl_dat) values
+		(in_dh_id, in_vt_id, in_sl_dat);
+end//
+delimiter ;
+
+call themCTDonHang(4, 9, 50);
+select * from CTDonHang;
 
 
+delimiter //
+drop procedure if exists xoaNhaCC//
+create procedure xoaNhaCC(
+	in in_id int
+)
+begin 
+	alter table DonDH 
+    modify ncc_id int null;
+    
+	update DonDH
+    set ncc_id = null
+    where ncc_id = in_id;
+    
+    delete from NhaCC
+    where id = in_id;
+end//
+delimiter ;
 
-
+call xoaNhaCC(2);
+select * from NhaCC;
+select * from DonDH;
 
 
 
